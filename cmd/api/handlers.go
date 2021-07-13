@@ -59,16 +59,7 @@ func responseError(w http.ResponseWriter, status int, code, message string) {
 		Message string `json:"message"`
 	}
 
-	w.Header().Add("Content-Type", "application/json")
-	w.WriteHeader(status)
-
-	b, err := json.Marshal(error{Code: code, Message: message})
-	if err != nil {
-		w.Write([]byte(message))
-		return
-	}
-
-	w.Write(b)
+	responseJSON(w, status, error{Code: code, Message: message})
 }
 
 func responseJSON(w http.ResponseWriter, status int, resp interface{}) {

@@ -32,6 +32,7 @@ func main() {
 	r := chi.NewRouter()
 	r.Post("/mutant", handler.Mutant)
 	r.Get("/stats", handler.Stats)
+
 	http.ListenAndServe(":8080", r)
 }
 
