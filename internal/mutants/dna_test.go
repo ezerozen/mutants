@@ -35,7 +35,7 @@ func Test_IsMutant(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := IsMutant(tt.args.dna); got != tt.want {
+			if got := isMutant(tt.args.dna); got != tt.want {
 				t.Errorf("IsMutant() = %v, want %v", got, tt.want)
 			}
 		})

@@ -1,0 +1,28 @@
+version: '3.7'
+services:
+  # Mutants-api
+  mutants-api:
+    build: .
+    container_name: mutants-api
+    depends_on:
+      - 'mongo'
+    ports:
+      - '8080:8080'
+  # MongoDB
+  mongo:
+    image: mongo
+    container_name: mongo
+    ports:
+      - '27017:27017'
+    volumes:
+      - ./mongodata:/data/db
+    restart: always
+  # Mongo Express
+  mongo_express:
+    image: mongo-express
+    container_name: mongo_express
+    depends_on:
+      - 'mongo'
+    ports:
+      - '8081:8081'
+    restart: always

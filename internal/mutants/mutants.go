@@ -1,71 +1,50 @@
 package mutants
 
-func IsMutant(dna []string) bool {
-	for x := range dna {
-		for i := 0; i < len(dna[x]); i++ {
-			if horizontally(dna, x, i, 0) ||
-				down(dna, x, i, 0) ||
-				obliqueRight(dna, x, i, 0) ||
-				obliqueLeft(dna, x, i, 0) {
-				return true
-			}
-		}
-	}
-	return false
+import (
+	"context"
+	"erozen/mutants/internal/db"
+)
+
+type Repository interface {
+	Save(ctx context.Context, test *db.Test) error
+	Count(ctx context.Context, isMutant bool) (int64, error)
 }
 
-func horizontally(dna []string, x, i, c int) bool {
-	if c >= 3 {
-		return true
-	}
-	if i < len(dna[x])-1 {
-		if dna[x][i] == dna[x][i+1] {
-			return horizontally(dna, x, i+1, c+1)
-		} else {
-			return false
-		}
-	}
-	return false
+type Service struct {
+	repository Repository
 }
 
-func down(dna []string, x, i, c int) bool {
-	if c >= 3 {
-		return true
-	}
-	if x < len(dna)-1 {
-		if dna[x][i] == dna[x+1][i] {
-			return down(dna, x+1, i, c+1)
-		} else {
-			return false
-		}
-	}
-	return false
+func NewService(repository Repository) *Service {
+	return &Service{repository: repository}
 }
 
-func obliqueRight(dna []string, x, i, c int) bool {
-	if c >= 3 {
-		return true
+func (s *Service) IsMutant(ctx context.Context, dna []string) (bool, error) {
+	test := db.Test{
+		DNA:    dna,
+		Mutant: isMutant(dna),
 	}
-	if x < len(dna)-1 && i < len(dna[x])-1 {
-		if dna[x][i] == dna[x+1][i+1] {
-			return obliqueRight(dna, x+1, i+1, c+1)
-		} else {
-			return false
-		}
+
+	if err := s.repository.Save(ctx, &test); err != nil {
+		return false, err
 	}
-	return false
+
+	return test.Mutant, nil
 }
 
-func obliqueLeft(dna []string, x, i, c int) bool {
-	if c >= 3 {
-		return true
+func (s *Service) Stats(ctx context.Context) (Stats, error) {
+	mutantCount, err := s.repository.Count(ctx, true)
+	if err != nil {
+		return Stats{}, err
 	}
-	if x < len(dna)-1 && i > 0 {
-		if dna[x][i] == dna[x+1][i-1] {
-			return obliqueLeft(dna, x+1, i-1, c+1)
-		} else {
-			return false
-		}
+
+	humanCount, err := s.repository.Count(ctx, false)
+	if err != nil {
+		return Stats{}, err
 	}
-	return false
+
+	return Stats{
+		MutantDNACount: mutantCount,
+		HumanDNACount:  humanCount,
+		Ratio:          float64(mutantCount / humanCount),
+	}, nil
 }

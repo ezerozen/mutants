@@ -7,6 +7,52 @@ import (
 	"net/http"
 )
 
+type MutantHandler struct {
+	service *mutants.Service
+}
+
+func (h *MutantHandler) Stats(w http.ResponseWriter, r *http.Request) {
+	stats, err := h.service.Stats(r.Context())
+	if err != nil {
+		responseError(w, http.StatusInternalServerError, "internal_error", err.Error())
+		return
+	}
+
+	responseJSON(w, http.StatusOK, stats)
+}
+
+func (h *MutantHandler) Mutant(w http.ResponseWriter, r *http.Request) {
+	body, err := ioutil.ReadAll(r.Body)
+	if err != nil {
+		responseError(w, http.StatusBadRequest, "invalid_body", err.Error())
+		return
+	}
+
+	type request struct {
+		DNA []string `json:"dna"`
+	}
+
+	var rq request
+	if err := json.Unmarshal(body, &rq); err != nil {
+		responseError(w, http.StatusBadRequest, "invalid_request", err.Error())
+		return
+	}
+
+	isMutant, err := h.service.IsMutant(r.Context(), rq.DNA)
+	if err != nil {
+		responseError(w, http.StatusInternalServerError, "internal_error", err.Error())
+		return
+	}
+
+	if isMutant {
+		w.WriteHeader(http.StatusOK)
+		return
+	}
+
+	w.WriteHeader(http.StatusForbidden)
+	return
+}
+
 func responseError(w http.ResponseWriter, status int, code, message string) {
 	type error struct {
 		Code    string `json:"code"`
@@ -25,28 +71,15 @@ func responseError(w http.ResponseWriter, status int, code, message string) {
 	w.Write(b)
 }
 
-func Mutant(w http.ResponseWriter, r *http.Request) {
-	body, err := ioutil.ReadAll(r.Body)
+func responseJSON(w http.ResponseWriter, status int, resp interface{}) {
+	w.Header().Add("Content-Type", "application/json")
+	w.WriteHeader(status)
+
+	b, err := json.Marshal(resp)
 	if err != nil {
-		responseError(w, http.StatusBadRequest, "invalid_body", err.Error())
+		w.Write([]byte(err.Error()))
 		return
 	}
 
-	type request struct {
-		DNA []string `json:"dna"`
-	}
-
-	var rq request
-	if err := json.Unmarshal(body, &rq); err != nil {
-		responseError(w, http.StatusBadRequest, "invalid_request", err.Error())
-		return
-	}
-
-	if mutants.IsMutant(rq.DNA) {
-		w.WriteHeader(http.StatusOK)
-		return
-	}
-
-	w.WriteHeader(http.StatusForbidden)
-	return
+	w.Write(b)
 }
