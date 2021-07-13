@@ -42,9 +42,14 @@ func (s *Service) Stats(ctx context.Context) (Stats, error) {
 		return Stats{}, err
 	}
 
+	var ratio float32
+	if humanCount > 0 {
+		ratio = float32(mutantCount) / float32(humanCount)
+	}
+
 	return Stats{
 		MutantDNACount: mutantCount,
 		HumanDNACount:  humanCount,
-		Ratio:          float64(mutantCount / humanCount),
+		Ratio:          ratio,
 	}, nil
 }

@@ -13,23 +13,101 @@ func Test_IsMutant(t *testing.T) {
 	}{
 		{
 			name: "is mutant",
-			args: args{dna: []string{"ATGCGA", "CAGTGC", "TTATGT", "AGAAGG", "CCCCTA", "TCACTG"}},
+			args: args{dna: []string{
+				"ATGCGA",
+				"CAGTGC",
+				"TTATGT",
+				"AGAAGG",
+				"CCCCTA",
+				"TCACTG",
+			}},
 			want: true,
 		},
 		{
 			name: "is mutant",
-			args: args{dna: []string{"ATGCGA", "CAGTAC", "TTAATT", "AGACGG", "GCGTCA", "TCACTG"}},
+			args: args{dna: []string{
+				"ATGGGG",
+				"CAGTGC",
+				"TTATGT",
+				"AGAAGG",
+				"CCCCTA",
+				"TCACTG",
+			}},
 			want: true,
 		},
 		{
 			name: "is mutant",
-			args: args{dna: []string{"ATGCGAATC", "CAGTACGCT", "TTAATTCTA", "AGACGGAGT", "GCGTCAGAT", "TCACTGCGA",
-				"AATCGCTAA", "GGCTAACGT", "AATTCCGGA"}},
+			args: args{dna: []string{
+				"ATGCGA",
+				"CAGTAC",
+				"TTAATG",
+				"AGACGG",
+				"GCGTCG",
+				"TCACTG",
+			}},
+			want: true,
+		},
+		{
+			name: "is mutant",
+			args: args{dna: []string{
+				"ATGCGAATC",
+				"CAGTACGCT",
+				"TTAATTCTA",
+				"AGACGGAGT",
+				"GCGTCAGAT",
+				"TCACTGCGA",
+				"AATCGCTAA",
+				"GGCTAACGT",
+				"AATTCCGGA",
+			}},
+			want: true,
+		},
+		{
+			name: "is mutant",
+			args: args{dna: []string{
+				"ATGCGA",
+				"CACTGA",
+				"TCATTA",
+				"CGACGA",
+				"GCGTCG",
+				"TCACTG",
+			}},
+			want: true,
+		},
+		{
+			name: "is mutant",
+			args: args{dna: []string{
+				"ATGCGA",
+				"CAGGGC",
+				"ATATGT",
+				"AGACGG",
+				"ACGTCA",
+				"ACACTG",
+			}},
 			want: true,
 		},
 		{
 			name: "is human",
-			args: args{dna: []string{"ATGCGA", "CAGTGC", "TTATTT", "AGACGG", "GCGTCA", "TCACTG"}},
+			args: args{dna: []string{
+				"CTAGTA",
+				"CAGGGC",
+				"ATATGG",
+				"AGACGG",
+				"ACGTCA",
+				"ACACTG",
+			}},
+			want: false,
+		},
+		{
+			name: "is human",
+			args: args{dna: []string{
+				"ATGCGA",
+				"CAGTGC",
+				"TTATTT",
+				"AGACGG",
+				"GCGTCA",
+				"TCACTG",
+			}},
 			want: false,
 		},
 	}
@@ -38,6 +116,19 @@ func Test_IsMutant(t *testing.T) {
 			if got := isMutant(tt.args.dna); got != tt.want {
 				t.Errorf("IsMutant() = %v, want %v", got, tt.want)
 			}
+		})
+	}
+}
+
+func Benchmark_isMutant(b *testing.B) {
+	for i := 0; i < b.N; i++ {
+		isMutant([]string{
+			"ATGCGA",
+			"CAGTGC",
+			"TTATTT",
+			"AGACGG",
+			"GCGTCA",
+			"TCACTG",
 		})
 	}
 }
